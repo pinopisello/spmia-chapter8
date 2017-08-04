@@ -1,9 +1,14 @@
 spring:
   application:
     name: organizationservice
+  datasource:
+    initialize: false   #runna schema.sql ad ogni boostrap 
   profiles:
     active:
-      default
+      prod
   cloud:
     config:
+      uri: http://localhost:8888
       enabled: true
+server:
+  port: 8080

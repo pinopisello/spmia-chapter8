@@ -13,14 +13,19 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 public class OrganizationRestTemplateClient {
-    @Autowired
+    //definito in Application.java .
+	//Ha UserContextInterceptor attaccato per l aggiunta heaaders "Authorization" e "tmx-correlation-id" alla request
+	//verso OrganizationService presi dalla request iniziale
+	@Autowired
     RestTemplate restTemplate;
 
+	//Riceve OrganizationRedisRepositoryImpl per interagire con Redis
     @Autowired
     OrganizationRedisRepository orgRedisRepo;
 
     private static final Logger logger = LoggerFactory.getLogger(OrganizationRestTemplateClient.class);
 
+    /*
     private Organization checkRedisCache(String organizationId) {
         try {
             return orgRedisRepo.findOrganization(organizationId);
@@ -38,11 +43,11 @@ public class OrganizationRestTemplateClient {
             logger.error("Unable to cache organization {} in Redis. Exception {}", org.getId(), ex);
         }
     }
-
+*/
     public Organization getOrganization(String organizationId){
         logger.debug("In Licensing Service.getOrganization: {}", UserContext.getCorrelationId());
 
-        Organization org = checkRedisCache(organizationId);
+        Organization org = orgRedisRepo.findOrganization(organizationId);
 
         if (org!=null){
             logger.debug("I have successfully retrieved an organization {} from the redis cache: {}", organizationId, org);
@@ -53,7 +58,7 @@ public class OrganizationRestTemplateClient {
 
         ResponseEntity<Organization> restExchange =
                 restTemplate.exchange(
-                        "http://zuulservice/api/organization/v1/organizations/{organizationId}",
+                		"http://zuulservice/organizationservice/v1/organizations/{organizationId}",
                         HttpMethod.GET,
                         null, Organization.class, organizationId);
 
@@ -61,7 +66,7 @@ public class OrganizationRestTemplateClient {
         org = restExchange.getBody();
 
         if (org!=null) {
-            cacheOrganizationObject(org);
+        	orgRedisRepo.saveOrganization(org);
         }
 
         return org;

@@ -1,9 +1,14 @@
 spring:
   application:
     name: licensingservice
+  datasource:
+    initialize: false   #runna schema.sql ad ogni boostrap    
   profiles:
     active:
-      default
+      prod
   cloud:
     config:
-      enabled: true
+      uri: http://localhost:8888
+      enabled: true 
+server:
+  port: 8081

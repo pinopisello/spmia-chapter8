@@ -1,14 +1,15 @@
 package com.thoughtmechanix.licenses.repository;
 
-import com.thoughtmechanix.licenses.model.Organization;
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import com.thoughtmechanix.licenses.model.Organization;
 
-@Repository
+@Component
 public class OrganizationRedisRepositoryImpl implements OrganizationRedisRepository {
     private static final String HASH_NAME ="organization";
 
@@ -19,6 +20,8 @@ public class OrganizationRedisRepositoryImpl implements OrganizationRedisReposit
         super();
     }
 
+    
+    //Riceve RedisTemplate definito in Application.java
     @Autowired
     private OrganizationRedisRepositoryImpl(RedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;

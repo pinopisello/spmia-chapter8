@@ -1,0 +1,47 @@
+Organization Service che droppa un jms message con json content nella queue "orgChangeTopic.licensingGroup" ogni volta che riceve un delete/put per una organization
+
+Si basa su Spring Cloud Stream (https://cloud.spring.io/ spring-cloud-stream/).
+
+1)Pom.xml  Aggiungi    <artifactId>spring-cloud-stream</artifactId> e  <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+
+2)application.xml   Aggiungi sezione:
+spring:
+  cloud:
+    stream:
+      bindings:
+        output:                            "output" deve metchare uno dei channels definiti nell app.In questo caso metcha Source.output!
+            destination:  orgChangeTopic   "orgChangeTopic" e' il nome del target topic in RabbitMQ
+            content-type: application/json  e' il payload dei jms messages
+            
+      rabbit: #vedi http://docs.spring.io/spring-cloud-stream/docs/current/reference/htmlsingle/#_rabbitmq_binder
+             binder:
+                    node: 127.0.0.1
+
+3)Annota Application.java con @EnableBinding(Source.class)
+  Questo permette di INVIARE jms messages [@StreamListener permette di RICEVERE jms]
+
+4)Definisci SimpleSourceBean.java che riceve la Source definita in @EnableBinding(Source.class) e puo' invocare source.output().send()
+  per inviare jms messages.
+
+
+http://docs.spring.io/spring-cloud-stream/docs/current/reference/htmlsingle/#_spring_cloud_stream_core
+L articolo definisce i concetti base dell architettura cloud-stream (I\O channels,binders,Consumer group,partitioning,etc)
+In breve @EnableBinding accetta una interfaccia che definisce i channels disponibili all app: Source,Sink,Processor
+
+In questo caso si vuole solo INVIARE quindi si usa Source che definisce un Output MessageChannel.
+
+
+
+###############  Lanciare RabbitMQ  #####################
+
+/Users/glocon/Library/rabbitmq_3_6_10/rabbitmq_server-3.6.10/sbin/rabbitmq-server
+
+http://localhost:15672/
+
+Ho aggiunto alias in bash_profile
+alias startrabbit='/Users/glocon/Library/rabbitmq_3_6_10/rabbitmq_server-3.6.10/sbin/rabbitmq-server'
+
+
+
+
+

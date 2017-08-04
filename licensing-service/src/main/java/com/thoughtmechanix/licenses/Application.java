@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.core.MessageSource;
@@ -33,7 +34,7 @@ import java.util.List;
 @SpringBootApplication
 @EnableEurekaClient
 @EnableCircuitBreaker
-@EnableBinding(Sink.class)
+//@EnableBinding(Sink.class)
 public class Application {
 
     @Autowired
@@ -41,6 +42,8 @@ public class Application {
 
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
+    
+    //Usato in OrganizationRestTemplateClient.java per connettersi al OrganizationService
     @LoadBalanced
     @Bean
     public RestTemplate getRestTemplate() {
@@ -56,6 +59,8 @@ public class Application {
         return template;
     }
 
+    //JedisConnectionFactory definisce connection factory al redis server usata da RedisTemplate
+    //Server e port sono definiti nel licensingservice-prod.yml
     @Bean
     public JedisConnectionFactory jedisConnectionFactory() {
         JedisConnectionFactory jedisConnFactory = new JedisConnectionFactory();
@@ -64,17 +69,21 @@ public class Application {
         return jedisConnFactory;
     }
 
+    //Usato in OrganizationRedisRepositoryImpl
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
         template.setConnectionFactory(jedisConnectionFactory());
+        template.setKeySerializer(new StringRedisSerializer());//altrimenti key serializer defaulta a JdkSerializationRedisSerializer il quale serializza "organization" in "organization".objectOutputStream.writeObject(object)
+        template.setHashKeySerializer(new StringRedisSerializer());
         return template;
     }
 
-//    @StreamListener(Sink.INPUT)
-//    public void loggerSink(OrganizationChangeModel orgChange) {
-//        logger.debug("Received an event for organization id {}", orgChange.getOrganizationId());
-//    }
+   // @StreamListener("input")
+    public void loggerSink(OrganizationChangeModel orgChange) {
+        logger.error("Received an event for organization id {}", orgChange.getOrganizationId());
+        System.out.println("Received an event for organization id {}"+ orgChange.getOrganizationId());
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

@@ -1,0 +1,64 @@
+Licensing Service che ascolta per jms message con json content nella queue "orgChangeTopic.licensingGroup" inviato da OrganizationService ogni volta che riceve un delete/put per una organization
+Inoltre si interfaccia a redis con un RedisTemplate per leggere/scrivere organization data nella cache.
+
+
+Si basa su Spring Cloud Stream (https://cloud.spring.io/ spring-cloud-stream/).
+
+1)Pom.xml  Aggiungi per Rabbit interaction   <artifactId>spring-cloud-stream</artifactId> e  <artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+  		   Agiungi  per Redis interaction    <artifactId>spring-data-redis</artifactId>   e  <artifactId>jedis</artifactId>
+  
+  
+2)application.xml   Aggiungi sezione:
+sspring:
+  cloud:
+    stream:
+      bindings:
+        input:
+          destination: orgChangeTopic
+          content-type: application/json
+          group: licensingGroup
+      rabbit: #vedi http://docs.spring.io/spring-cloud-stream/docs/current/reference/htmlsingle/#_rabbitmq_binder
+             binder:
+                    node: 127.0.0.1
+
+3)Annota OrganizationChangeHandler.java con @EnableBinding(CustomChannels.class)
+  Questo permette di RICEVERE jms messages
+   @StreamListener("inboundOrgChanges")
+    public void loggerSink(OrganizationChangeModel orgChange) {
+        logger.error("Received an event for organization id {}", orgChange.getOrganizationId());
+        System.out.println("Received an event for organization id {}"+ orgChange.getOrganizationId());
+    }
+  
+4)Definisci JedisConnectionFactory in Application.java per connessione con Redis.
+
+5)Definisci un RedisTemplate in Application.java che usa jedisConnectionFactory come connection factory.
+  Server e port sono definiti nel licensingservice-prod.yml
+  
+6)Definisci OrganizationRedisRepositoryImpl  usa RedisTemplate per put/find/delete di organization in Redis.
+
+####################   Redis e redis Commander  ##################
+Lanciare Redis => startredis [alias startredis='nohup redis-server &']
+Lancia redis-commander => startredis_commander [alias startredis_commander='redis-commander -p 8889'\
+                          dopodiche  connetti browser a http://127.0.0.1:8889
+
+Redis command line => redis-cli [e' in /usr/local/bin/redis-cli]
+
+
+
+
+#################### Interazione con Redis   #####################
+
+OrganizationRedisRepositoryImpl contiene RedisTemplate definito in Application.java
+
+Ad inizializzazione,  hashOperations = redisTemplate.opsForHash();
+  
+  hashOperations e' istanza DefaultHashOperations che contiene tutte le operations che si possono usare su un Redis Hash.
+
+infatti ogni organizzazione ottenuta da OrganizationService e' storata come hash [comando hset]:
+
+Hash Name= 'organization' , HashKey ='Organization_id', HashValue = 'serializzazione dell oggetto Organization'
+
+
+
+
+

@@ -2,13 +2,36 @@ spring:
   cloud:
     stream:
       bindings:
-        output:
-            destination:  orgChangeTopic
+        output:                           #mappa in un messagechannel.In questo caso Source.output()
+            destination:  orgChangeTopic  #mappa in un exchange "orgChangeTopic" in rabbit
             content-type: application/json
-      kafka:
-        binder:
-          zkNodes: localhost
-          brokers: localhost
+            group: licensingGroup         #mappa in una queue "licensingGroup" in Rabbit bound all exchange "orgChangeTopic"
+            #binder: rabbit1
+            producer:
+                  requiredGroups: licensingGroup #genera un Queue.declare e un Queue.bind messages per creare  queue orgChangeTopic.licensingGroup e bindarla all exchage orgChangeTopic con routing key = #
+                  headerMode: raw
+ #       binders:
+ #         rabbit1:
+ #           type: rabbit   
+ #           environment:
+ #               spring:
+ #                 rabbitmq:
+  #                  host: 127.0.0.1
+ #                   port: 5673
+               
+      rabbit: #vedi http://docs.spring.io/spring-cloud-stream/docs/current/reference/htmlsingle/#_rabbitmq_binder
+             binder:
+                    node: 127.0.0.1
+                    port: 5673
+             bindings:
+                    output:
+                           producer: 
+                                   bindingRoutingKey: "#" #setta routing key tra orgChangeTopic e orgChangeTopic.licensingGroup
+                                   bindQueue: true  #Whether to bind the queue to the destination exchange;  Only applies if requiredGroups are provided and then only to those groups
+                                   autoBindDlq: false   #dichiara queues orgChangeTopic.licensingGroup.dlq e DLX  e li binda con routing key "orgChangeTopic.licensingGroup"
+                                   exchangeType: topic #topic,fanout,direct
+                                   routing-key-expression: '''pippa''' #setta la routing key DEL MESSAGGIO INVIATO
+                                   
 
 #Setting the logging levels for the service
 logging:

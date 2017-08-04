@@ -1,14 +1,14 @@
 package com.thoughtmechanix.licenses.events.handlers;
 
-import com.thoughtmechanix.licenses.events.CustomChannels;
-import com.thoughtmechanix.licenses.events.models.OrganizationChangeModel;
-import com.thoughtmechanix.licenses.repository.OrganizationRedisRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
-import org.springframework.cloud.stream.messaging.Sink;
+
+import com.thoughtmechanix.licenses.events.CustomChannels;
+import com.thoughtmechanix.licenses.events.models.OrganizationChangeModel;
+import com.thoughtmechanix.licenses.repository.OrganizationRedisRepository;
 
 
 @EnableBinding(CustomChannels.class)

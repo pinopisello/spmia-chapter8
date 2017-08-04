@@ -2,14 +2,19 @@ spring:
   cloud:
     stream:
       bindings:
-        inboundOrgChanges:
+        #input:  #usato in Application.java
+        #  destination: orgChangeTopic
+        #  content-type: application/json
+        #  group: licensingGroup
+          
+        inboundOrgChanges:  #usato in OrganizationChangeHandler.java
           destination: orgChangeTopic
           content-type: application/json
           group: licensingGroup
-      kafka:
-        binder:
-          zkNodes: localhost
-          brokers: localhost
+          
+      rabbit: #vedi http://docs.spring.io/spring-cloud-stream/docs/current/reference/htmlsingle/#_rabbitmq_binder
+             binder:
+                    node: 127.0.0.1
 
 #        input:
 #          destination: orgChangeTopic
